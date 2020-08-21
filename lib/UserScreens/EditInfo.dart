@@ -43,23 +43,6 @@ class _HomeScreenState extends State<EditInfo> {
     });
   }
 
-  Future uploadPic(BuildContext context) async{
-    StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child("Users").child("Images");
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-    StorageTaskSnapshot taskSnapshot=await uploadTask.onComplete;
-    String url = (await firebaseStorageRef.getDownloadURL()).toString();
-
-
-    setState(() {
-      print("Profile Picture uploaded");
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text('Profile Picture Uploaded')));
-    });
-  }
-
-
-
-
-
   @override
   void initState() {
     super.initState();
@@ -98,11 +81,11 @@ class _HomeScreenState extends State<EditInfo> {
                       children: [
                         StreamBuilder<DocumentSnapshot>(
                             stream: Firestore.instance.collection('Nitrous').document("Users").collection(snapshot.data).document("info").snapshots(), //retorna un Stream<DocumentSnapshot>
-                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                              if (!snapshot.hasData) {
+                            builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snap) {
+                              if (!snap.hasData) {
                                 return new Center(child: new Text('Loading...'));
                               }
-                              var userDocument = snapshot.data;
+                              var userDocument = snap.data;
                               _usernameController.text = userDocument["name"];
                               _positionController.text = userDocument["title"];
                               _dayController.text = userDocument["Bday"].toString();
@@ -127,9 +110,32 @@ class _HomeScreenState extends State<EditInfo> {
                                       child: Container(
                                         width: 90.0,
                                         height: 90.0,
-                                        child: CircleAvatar(
-                                          radius: 20,
-                                          backgroundImage: NetworkImage(userDocument["image"]),
+                                        child: GestureDetector(
+                                          onTap: () async{
+                                            getImage();
+                                            StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child("Users").child(snapshot.data).child("Images");
+                                            StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
+                                            StorageTaskSnapshot taskSnapshot=await uploadTask.onComplete;
+                                            String url = (await firebaseStorageRef.getDownloadURL()).toString();
+
+                                            DocumentReference documentReference = _firestore
+                                                .collection("Nitrous")
+                                                .document("Users")
+                                                .collection(snapshot.data)
+                                                .document("info");
+                                            documentReference.updateData({
+                                              "image": url,
+                                            });
+
+
+                                            setState(() {
+                                              print("Profile Picture uploaded");
+                                              Scaffold.of(context).showSnackBar(SnackBar(content: Text('Profile Picture Uploaded')));
+                                            });                                          },
+                                          child: CircleAvatar(
+                                            radius: 20,
+                                            backgroundImage: NetworkImage(userDocument["image"]),
+                                          ),
                                         ),
                                       ),),
                                     Padding(padding: const EdgeInsets.only(top: 10),

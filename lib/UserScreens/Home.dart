@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nitrous/FirstScreens/auth.dart';
+import 'package:nitrous/UserScreens/EditInfo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 
@@ -49,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Query q = _firestore.collection('Nitrous')
         .document("Actions")
         .collection("Actions")
-        .orderBy('formattedDate', descending: true).limit(perpage);
+        .orderBy('formattedDate').limit(perpage);
     setState(() {
       loading = true;
     });
@@ -84,26 +85,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Pagination end
 
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-
-    setState(() {
-      _image = image as File;
-    });
-  }
-
-  Future uploadPic(BuildContext context) async{
-    StorageReference firebaseStorageRef = FirebaseStorage.instance.ref().child("Users").child("Images");
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_image);
-    StorageTaskSnapshot taskSnapshot=await uploadTask.onComplete;
-    String url = (await firebaseStorageRef.getDownloadURL()).toString();
-
-
-    setState(() {
-      print("Profile Picture uploaded");
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text('Profile Picture Uploaded')));
-    });
-  }
 
   Future<void> off() async {
     final SharedPreferences prefs = await _prefs;
@@ -284,9 +265,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                       child: new Container(
                                         width: 90.0,
                                         height: 90.0,
-                                        child: CircleAvatar(
-                                          radius: 20,
-                                          backgroundImage: NetworkImage(userDocument["image"]),
+                                        child: GestureDetector(
+                                          onTap: (){
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => EditInfo(),
+                                                ));
+                                          },
+                                          child: CircleAvatar(
+                                            radius: 20,
+                                            backgroundImage: NetworkImage(userDocument["image"]),
+                                          ),
                                         ),
                                       )),
                                 ],
@@ -312,12 +302,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         FutureBuilder<int>(
                             future: onoff,
-                            builder: (BuildContext context, AsyncSnapshot<int> snapshots) {
-                              switch (snapshots.connectionState) {
+                            builder: (BuildContext context, AsyncSnapshot<int> snap) {
+                              switch (snap.connectionState) {
                                 case ConnectionState.waiting:
                                   return const CircularProgressIndicator();
                                 default:
-                                  if (snapshots.data == 1)
+                                  if (snap.data == 1)
                                   {
                                     return  Padding(
                                       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
@@ -483,280 +473,277 @@ class _HomeScreenState extends State<HomeScreen> {
                                   else {
                                     return  Padding(
                                       padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(20),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(20),
-                                              border: Border.all(color: Colors.white)),
-                                          child: Padding(
-                                            padding:
-                                            const EdgeInsets.only(top: 20, right: 20, left: 20),
-                                            child: Column(
-                                              children: [
-                                                Align(
-                                                  alignment: Alignment.center,
-                                                  child: Padding(
-                                                    padding: const EdgeInsets.only(left: 10),
-                                                    child: Text(
-                                                      'Pick Topic...',
-                                                      style: TextStyle(
-                                                        fontFamily: 'Modak',
-                                                        fontSize: 24,
-                                                        color: Colors.red,
-                                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(20),
+                                            border: Border.all(color: Colors.white)),
+                                        child: Padding(
+                                          padding:
+                                          const EdgeInsets.only(top: 20, right: 20, left: 20),
+                                          child: Column(
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.center,
+                                                child: Padding(
+                                                  padding: const EdgeInsets.only(left: 10),
+                                                  child: Text(
+                                                    'Pick Topic...',
+                                                    style: TextStyle(
+                                                      fontFamily: 'Modak',
+                                                      fontSize: 24,
+                                                      color: Colors.red,
                                                     ),
                                                   ),
                                                 ),
-                                                Padding(
-                                                  padding: const EdgeInsets.only(top: 20),
-                                                  child: Container(
-                                                    padding: const EdgeInsets.only(right: 5,left: 5),
-                                                    decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(10),
-                                                        border: Border.all(color: Colors.black)),
-                                                    child: Column(children: <Widget>[
-                                                      DropdownButton(
-                                                          value: topic,
-                                                          items: [
-                                                            DropdownMenuItem(
-                                                              child: Text("Time Documentation"),
-                                                              value: "Time Documentation",
-                                                            ),
-                                                          ],
-                                                          onChanged: (value) {
-                                                            topic = value;
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20),
+                                                child: Container(
+                                                  padding: const EdgeInsets.only(right: 5,left: 5),
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      border: Border.all(color: Colors.black)),
+                                                  child: Column(children: <Widget>[
+                                                    DropdownButton(
+                                                        value: topic,
+                                                        items: [
+                                                          DropdownMenuItem(
+                                                            child: Text("Time Documentation"),
+                                                            value: "Time Documentation",
+                                                          ),
+                                                        ],
+                                                        onChanged: (value) {
+                                                          topic = value;
 //notifyListeners();
-                                                          }),
-                                                      DropdownButton(
-                                                          value: subTopic,
-                                                          items: [
-                                                            DropdownMenuItem(
-                                                              child: Text("Learn"),
-                                                              value: "Learn",
-                                                            ),
-                                                            DropdownMenuItem(
-                                                              child: Text("Teach"),
-                                                              value: "Teach",
-                                                            ),
-                                                            DropdownMenuItem(
-                                                              child: Text("Break"),
-                                                              value: "Break",
-                                                            ),
-                                                          ],
-                                                          onChanged: (value) {
-                                                            setState(() {
-                                                              subTopic = value;
-                                                            });
-                                                          }),
-                                                      StreamBuilder<QuerySnapshot>(
-                                                          stream: Firestore.instance.collection('Nitrous').document('Users').collection(snapshot.data).document('Topics').collection(subTopic).snapshots(),
-                                                          builder: (context, snap) {
-                                                            if(snap.data == null) return CircularProgressIndicator();
-
-                                                            else {
-                                                              return new DropdownButton<String>(
-                                                                hint: new Text('Pick topic'),
-                                                                value: topicname,
-                                                                onChanged: (String newValue) {
-                                                                  setState(() {
-                                                                    topicname = newValue;
-                                                                    print(topicname);
-                                                                  });
-                                                                },
-                                                                items: snap.data.documents.map((
-                                                                    DocumentSnapshot document) {
-                                                                  return new DropdownMenuItem<
-                                                                      String>(
-                                                                      onTap: () {
-                                                                        setState(() {
-                                                                          powerbar = document
-                                                                              .data['catagory'];
-                                                                          factor =
-                                                                          document.data['value'];
-                                                                        });
-                                                                      },
-                                                                      value: document
-                                                                          .data['name'],
-                                                                      child: new Text(
-                                                                        document.data['name'],
-                                                                        textAlign: TextAlign
-                                                                            .center,)
-                                                                  );
-                                                                }).toList(),
-                                                              );
-                                                            }
-                                                          }
-                                                      ),
-
-                                                    ],),),
-                                                ),
-                                                FlatButton.icon(
-                                                    onPressed: () {},
-                                                    icon: Icon(Icons.add),
-                                                    label: Text("Add topic")),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    Text("End"),
-                                                    Switch(
-                                                        value: false,
+                                                        }),
+                                                    DropdownButton(
+                                                        value: subTopic,
+                                                        items: [
+                                                          DropdownMenuItem(
+                                                            child: Text("Learn"),
+                                                            value: "Learn",
+                                                          ),
+                                                          DropdownMenuItem(
+                                                            child: Text("Teach"),
+                                                            value: "Teach",
+                                                          ),
+                                                          DropdownMenuItem(
+                                                            child: Text("Break"),
+                                                            value: "Break",
+                                                          ),
+                                                        ],
                                                         onChanged: (value) {
                                                           setState(() {
-                                                            {
-                                                              showDialog(
-                                                                  context: context,
-                                                                  builder:(BuildContext context)
-                                                                  {
-                                                                    return Dialog(
-                                                                      shape: RoundedRectangleBorder(
-                                                                          borderRadius:
-                                                                          BorderRadius.circular(20.0)), //this right here
-                                                                      child: Container(
-                                                                        height: 200,
-                                                                        child: Padding(
-                                                                          padding: const EdgeInsets.all(12.0),
-                                                                          child: Column(
-                                                                            mainAxisAlignment: MainAxisAlignment.center,
-                                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                                            children: [
-                                                                              Center(child:Text("Are you sure") ,),
-                                                                              SizedBox(
-                                                                                width: 320.0,
-                                                                                child: Column(
-                                                                                  children: [
-                                                                                    RaisedButton(
-                                                                                      onPressed: () async {
-
-                                                                                        onn();
-                                                                                        DateTime now = DateTime.now();
-                                                                                        String Year = DateFormat('yy').format(now);
-                                                                                        String Month = DateFormat('MM').format(now);
-                                                                                        String Day = DateFormat('dd').format(now);
-
-                                                                                        String Hour = DateFormat('kk').format(now);
-                                                                                        String Min = DateFormat('mm').format(now);
-
-                                                                                        String formdate = DateFormat('yyMMdd').format(now);
-
-                                                                                        SharedPreferences pre = await SharedPreferences.getInstance();
-                                                                                        Future<int> day;
-                                                                                        Future<int> year;
-                                                                                        Future<int> min;
-                                                                                        Future<int> month;
-                                                                                        Future<int> hour;
-                                                                                        Future<int> uid;
-
-                                                                                        day = pre.setInt("day", int.parse(Day)).then((bool success) {
-                                                                                          print(day);
-                                                                                          return day;
-                                                                                        });
-
-                                                                                        year = pre.setInt("year", int.parse(Year)).then((bool success) {
-                                                                                          print(year);
-                                                                                          return year;
-                                                                                        });
-
-                                                                                        min = pre.setInt("min", int.parse(Min)).then((bool success) {
-                                                                                          print(min);
-                                                                                          return min;
-                                                                                        });
-
-                                                                                        month = pre.setInt("month", int.parse(Month)).then((bool success) {
-                                                                                          print(month);
-                                                                                          return month;
-                                                                                        });
-
-                                                                                        hour = pre.setInt("hour", int.parse(Hour)).then((bool success) {
-                                                                                          print(hour);
-                                                                                          return hour;
-                                                                                        });
-
-                                                                                        DocumentReference documentReference = _firestore
-                                                                                            .collection("Nitrous")
-                                                                                            .document("Actions")
-                                                                                            .collection("Actions")
-                                                                                            .document();
-                                                                                        documentReference.setData({
-                                                                                          "id": documentReference.documentID,
-                                                                                          "topic": topicname,
-                                                                                          "formattedDate": int.parse(formdate),
-                                                                                          "powerBar": powerbar,
-                                                                                          "subTopic": subTopic,
-                                                                                          "title": topic,
-                                                                                          "startHour": int.parse(Hour),
-                                                                                          "endHour": 0,
-                                                                                          "startMin": int.parse(Min),
-                                                                                          "endMin": 0,
-                                                                                          "startMonth": int.parse(Month),
-                                                                                          "endMonth": 0,
-                                                                                          "startDay": int.parse(Day),
-                                                                                          "endDay": 0,
-                                                                                          "startYear": int.parse(Year),
-                                                                                          "endYear": 0,
-                                                                                          "duration": 0,
-                                                                                          "factor": factor,
-                                                                                          "status": "Ongoing",
-                                                                                          "userID": snapshot.data
-                                                                                        });
-
-                                                                                        uid = pre.setString("uid", documentReference.documentID).then((bool success) {
-                                                                                          print(uid);
-                                                                                          return uid;
-                                                                                        });
-                                                                                        Navigator.pop(context);
-                                                                                      },
-                                                                                      child: Text(
-                                                                                        "Yes",
-                                                                                        style: TextStyle(color: Colors.white),
-                                                                                      ),
-                                                                                      color: const Color(0xFF1BC0C5),
-                                                                                    ),
-                                                                                    RaisedButton(
-                                                                                      onPressed: () {
-                                                                                        Navigator.pop(context);
-                                                                                      },
-                                                                                      child: Text(
-                                                                                        "No",
-                                                                                        style: TextStyle(color: Colors.white),
-                                                                                      ),
-                                                                                      color: const Color(0xFF1BC0C5),
-                                                                                    )
-                                                                                  ],
-                                                                                ),
-                                                                              )
-                                                                            ],
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    );
-                                                                  }
-                                                              );
-                                                            }
+                                                            subTopic = value;
                                                           });
                                                         }),
-                                                    Text("Start")
-                                                  ],
-                                                ),
-                                                Text("Break"),
-                                                Container(
-                                                  margin: EdgeInsets.symmetric(vertical: 10),
-                                                  decoration: BoxDecoration(
-                                                      shape: BoxShape.circle, color: Colors.blue),
-                                                  child: IconButton(
-                                                    icon: Icon(
-                                                      breakTime ? Icons.pause : Icons.play_arrow,
-                                                      color: Colors.white,
-                                                    ),
-                                                    onPressed: () {
+                                                    StreamBuilder<QuerySnapshot>(
+                                                        stream: Firestore.instance.collection('Nitrous').document('Users').collection(snapshot.data).document('Topics').collection(subTopic).snapshots(),
+                                                        builder: (context, snap) {
+                                                          if(snap.data == null) return CircularProgressIndicator();
 
-                                                    },
+                                                          else {
+                                                            return new DropdownButton<String>(
+                                                              hint: new Text('Pick topic'),
+                                                              value: topicname,
+                                                              onChanged: (String newValue) {
+                                                                setState(() {
+                                                                  topicname = newValue;
+                                                                  print(topicname);
+                                                                });
+                                                              },
+                                                              items: snap.data.documents.map((
+                                                                  DocumentSnapshot document) {
+                                                                return new DropdownMenuItem<
+                                                                    String>(
+                                                                    onTap: () {
+                                                                      setState(() {
+                                                                        powerbar = document
+                                                                            .data['catagory'];
+                                                                        factor =
+                                                                        document.data['value'];
+                                                                      });
+                                                                    },
+                                                                    value: document
+                                                                        .data['name'],
+                                                                    child: new Text(
+                                                                      document.data['name'],
+                                                                      textAlign: TextAlign
+                                                                          .center,)
+                                                                );
+                                                              }).toList(),
+                                                            );
+                                                          }
+                                                        }
+                                                    ),
+
+                                                  ],),),
+                                              ),
+                                              FlatButton.icon(
+                                                  onPressed: () {},
+                                                  icon: Icon(Icons.add),
+                                                  label: Text("Add topic")),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text("End"),
+                                                  Switch(
+                                                      value: false,
+                                                      onChanged: (value) {
+                                                        setState(() {
+                                                          {
+                                                            showDialog(
+                                                                context: context,
+                                                                builder:(BuildContext context)
+                                                                {
+                                                                  return Dialog(
+                                                                    shape: RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                        BorderRadius.circular(20.0)), //this right here
+                                                                    child: Container(
+                                                                      height: 200,
+                                                                      child: Padding(
+                                                                        padding: const EdgeInsets.all(12.0),
+                                                                        child: Column(
+                                                                          mainAxisAlignment: MainAxisAlignment.center,
+                                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            Center(child:Text("Are you sure") ,),
+                                                                            SizedBox(
+                                                                              width: 320.0,
+                                                                              child: Column(
+                                                                                children: [
+                                                                                  RaisedButton(
+                                                                                    onPressed: () async {
+
+                                                                                      onn();
+                                                                                      DateTime now = DateTime.now();
+                                                                                      String Year = DateFormat('yy').format(now);
+                                                                                      String Month = DateFormat('MM').format(now);
+                                                                                      String Day = DateFormat('dd').format(now);
+
+                                                                                      String Hour = DateFormat('kk').format(now);
+                                                                                      String Min = DateFormat('mm').format(now);
+
+                                                                                      String formdate = DateFormat('yyMMdd').format(now);
+
+                                                                                      SharedPreferences pre = await SharedPreferences.getInstance();
+                                                                                      Future<int> day;
+                                                                                      Future<int> year;
+                                                                                      Future<int> min;
+                                                                                      Future<int> month;
+                                                                                      Future<int> hour;
+                                                                                      Future<int> uid;
+
+                                                                                      day = pre.setInt("day", int.parse(Day)).then((bool success) {
+                                                                                        print(day);
+                                                                                        return day;
+                                                                                      });
+
+                                                                                      year = pre.setInt("year", int.parse(Year)).then((bool success) {
+                                                                                        print(year);
+                                                                                        return year;
+                                                                                      });
+
+                                                                                      min = pre.setInt("min", int.parse(Min)).then((bool success) {
+                                                                                        print(min);
+                                                                                        return min;
+                                                                                      });
+
+                                                                                      month = pre.setInt("month", int.parse(Month)).then((bool success) {
+                                                                                        print(month);
+                                                                                        return month;
+                                                                                      });
+
+                                                                                      hour = pre.setInt("hour", int.parse(Hour)).then((bool success) {
+                                                                                        print(hour);
+                                                                                        return hour;
+                                                                                      });
+
+                                                                                      DocumentReference documentReference = _firestore
+                                                                                          .collection("Nitrous")
+                                                                                          .document("Actions")
+                                                                                          .collection("Actions")
+                                                                                          .document();
+                                                                                      documentReference.setData({
+                                                                                        "id": documentReference.documentID,
+                                                                                        "topic": topicname,
+                                                                                        "formattedDate": int.parse(formdate),
+                                                                                        "powerBar": powerbar,
+                                                                                        "subTopic": subTopic,
+                                                                                        "title": topic,
+                                                                                        "startHour": int.parse(Hour),
+                                                                                        "endHour": 0,
+                                                                                        "startMin": int.parse(Min),
+                                                                                        "endMin": 0,
+                                                                                        "startMonth": int.parse(Month),
+                                                                                        "endMonth": 0,
+                                                                                        "startDay": int.parse(Day),
+                                                                                        "endDay": 0,
+                                                                                        "startYear": int.parse(Year),
+                                                                                        "endYear": 0,
+                                                                                        "duration": 0,
+                                                                                        "factor": factor,
+                                                                                        "status": "Ongoing",
+                                                                                        "userID": snapshot.data
+                                                                                      });
+
+                                                                                      uid = pre.setString("uid", documentReference.documentID).then((bool success) {
+                                                                                        print(uid);
+                                                                                        return uid;
+                                                                                      });
+                                                                                      Navigator.pop(context);
+                                                                                    },
+                                                                                    child: Text(
+                                                                                      "Yes",
+                                                                                      style: TextStyle(color: Colors.white),
+                                                                                    ),
+                                                                                    color: const Color(0xFF1BC0C5),
+                                                                                  ),
+                                                                                  RaisedButton(
+                                                                                    onPressed: () {
+                                                                                      Navigator.pop(context);
+                                                                                    },
+                                                                                    child: Text(
+                                                                                      "No",
+                                                                                      style: TextStyle(color: Colors.white),
+                                                                                    ),
+                                                                                    color: const Color(0xFF1BC0C5),
+                                                                                  )
+                                                                                ],
+                                                                              ),
+                                                                            )
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }
+                                                            );
+                                                          }
+                                                        });
+                                                      }),
+                                                  Text("Start")
+                                                ],
+                                              ),
+                                              Text("Break"),
+                                              Container(
+                                                margin: EdgeInsets.symmetric(vertical: 10),
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle, color: Colors.blue),
+                                                child: IconButton(
+                                                  icon: Icon(
+                                                    breakTime ? Icons.pause : Icons.play_arrow,
+                                                    color: Colors.white,
                                                   ),
-                                                )
-                                              ],
-                                            ),
+                                                  onPressed: () {
+
+                                                  },
+                                                ),
+                                              )
+                                            ],
                                           ),
                                         ),
                                       ),
@@ -885,10 +872,6 @@ class _HomeScreenState extends State<HomeScreen> {
       "duration": diff,
       "status": "Done",
     });
-
-    Navigator.pop(context);
-
-
   }
 
 
