@@ -77,14 +77,19 @@ class _LoginPageState extends State<LoginPage> {
 
         DocumentReference documentReference = Firestore.instance
             .collection("Nitrous")
-            .document("Actions")
-            .collection("Actions")
-            .document();
+            .document("Users")
+            .collection(_email)
+            .document("info");
         documentReference.setData({
           "name": _email,
           "image": "https://firebasestorage.googleapis.com/v0/b/nitrous-c7d4f.appspot.com/o/Images%2F80-805068_my-profile-icon-blank-profile-picture-circle-hd.png?alt=media&token=9f6f2461-a225-44f5-a352-4d9fcfdfe36b",
           "title": "",
-          "password": _password,
+          "Bday": 0,
+          "Bmonth": 0,
+          "Byear": 0,
+          "Jmonth": 0,
+          "Jyear": 0,
+
         });
 
 
